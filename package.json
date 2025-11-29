@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "express": "^5.1.0",
+    "http-status": "^2.1.0",
     "mongoose": "^8.20.1",
     "nodemon": "^3.1.11"
   }
