@@ -37,10 +37,10 @@ const updateComment = async (req, res) => {
   const id = req.params.id;
   const updatedData = req.body;
 
-  if (updatedData.postId) {
+  if (updatedData.postId || updatedData.sender) {
     res
       .status(httpStatus.status.BAD_REQUEST)
-      .send("postId can not be sent in update comment request");
+      .send("postId or sender can not be sent in update comment request");
 
     return;
   }
