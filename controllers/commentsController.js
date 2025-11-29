@@ -36,7 +36,14 @@ const getComments = async (req, res) => {
 const updateComment = async (req, res) => {
   const id = req.params.id;
   const updatedData = req.body;
-  console.log(updatedData);
+
+  if (updatedData.postId) {
+    res
+      .status(httpStatus.status.BAD_REQUEST)
+      .send("postId can not be sent in update comment request");
+
+    return;
+  }
   try {
     const comment = await commentModel.findByIdAndUpdate(id, updatedData, {
       new: true,

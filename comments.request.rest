@@ -15,12 +15,13 @@ Content-Type: application/json
 }
 
 ###
-PUT http://localhost:3000/comments/692b59fe51237288e7be6b50
+PUT http://localhost:3000/comments/692b5a1151237288e7be6b54
 Content-Type: application/json  
 
 {
+  "postId": "692b20af768f0b45c3dca36e",
   "text": "very nice",
-  "sender": "Amit Miz" 
+  "sender": "Amit Mizrahi" 
 }
 
 ###
