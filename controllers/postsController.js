@@ -1,13 +1,15 @@
 const postModel = require("../model/postsModel");
-
+const httpStatus = require("http-status");
 const createPost = async (req, res) => {
   const postData = req.body;
   try {
     const newPost = await postModel.create(postData);
-    res.status(201).json(newPost);
+    res.status(httpStatus.status.CREATED).json(newPost);
   } catch (err) {
     console.error(err);
-    res.status(500).send("Error creating post");
+    res
+      .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+      .send("Error creating post");
   }
 };
 
@@ -19,7 +21,9 @@ const getAllPosts = async (req, res) => {
       const posts = await postModel.find({ sender });
 
       if (!posts) {
-        return res.status(404).send(`Posts by ${sender} were not found`);
+        return res
+          .status(httpStatus.status.NOT_FOUND)
+          .send(`Posts by ${sender} were not found`);
       } else {
         res.json(posts);
       }
@@ -29,7 +33,9 @@ const getAllPosts = async (req, res) => {
     }
   } catch (err) {
     console.error(err);
-    res.status(500).send("Error retrieving posts");
+    res
+      .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+      .send("Error retrieving posts");
   }
 };
 
@@ -44,7 +50,9 @@ const getPostById = async (req, res) => {
     }
   } catch (err) {
     console.error(err);
-    res.status(500).send(`Error retrieving Post by ID: ${id}`);
+    res
+      .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+      .send(`Error retrieving Post by ID: ${id}`);
   }
 };
 
@@ -58,7 +66,9 @@ const updatePost = async (req, res) => {
     res.json(post);
   } catch (err) {
     console.error(err);
-    res.status(500).send("Error updating post");
+    res
+      .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+      .send("Error updating post");
   }
 };
 
