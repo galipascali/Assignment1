@@ -1,0 +1,28 @@
+###
+
+GET http://localhost:3000/posts
+
+###
+
+GET http://localhost:3000/posts/692b20af768f0b45c3dca36f
+
+###
+
+GET http://localhost:3000/posts/?sender=Gali
+
+###
+POST http://localhost:3000/posts
+Content-Type: application/json  
+
+{
+  "sender": "Gali",
+  "message": "Hello worls"
+}
+
+###
+PUT http://localhost:3000/posts/692b20af768f0b45c3dca36f
+Content-Type: application/json  
+
+{
+  "message": "Hello no world"
+}
