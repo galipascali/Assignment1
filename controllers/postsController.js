@@ -1,4 +1,4 @@
-const postModel = require("../model/postsModel");
+const postModel = require("../models/postsModel");
 const httpStatus = require("http-status");
 const createPost = async (req, res) => {
   const postData = req.body;

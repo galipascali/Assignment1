@@ -1,0 +1,27 @@
+###
+GET http://localhost:3000/comments
+
+###
+GET http://localhost:3000/comments?postId=692b20af768f0b45c3dca36f
+
+###
+POST http://localhost:3000/comments
+Content-Type: application/json  
+
+{
+  "postId": "692b20af768f0b45c3dca36f",
+  "text": "nice",
+  "sender": "Amit Miz"
+}
+
+###
+PUT http://localhost:3000/comments/692b59fe51237288e7be6b50
+Content-Type: application/json  
+
+{
+  "text": "very nice",
+  "sender": "Amit Miz" 
+}
+
+###
+DELETE http://localhost:3000/comments/692b59fe51237288e7be6b50

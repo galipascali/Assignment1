@@ -4,7 +4,10 @@ const mongoose = require("mongoose");
 
 app.use(express.json());
 const postsRoute = require("./routes/postsRoute");
+const commentsRoute = require("./routes/commentsRoute");
+
 app.use("/posts", postsRoute);
+app.use("/comments", commentsRoute);
 
 const initApp = () => {
   const appPromise = new Promise((resolve) => {
