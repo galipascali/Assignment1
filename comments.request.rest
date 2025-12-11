@@ -2,27 +2,25 @@
 GET http://localhost:3000/comments
 
 ###
-GET http://localhost:3000/comments?postId=692b20af768f0b45c3dca36f
+GET http://localhost:3000/comments?postId=693b2c68048595d9923e7be7
 
 ###
 POST http://localhost:3000/comments
 Content-Type: application/json  
 
 {
-  "postId": "692b20af768f0b45c3dca36f",
-  "text": "nice",
+  "postId": "693b2c68048595d9923e7be7",
+  "text": "nice post",
   "sender": "Amit Miz"
 }
 
 ###
-PUT http://localhost:3000/comments/692b5a1151237288e7be6b54
+PUT http://localhost:3000/comments/693b2cad048595d9923e7bf0
 Content-Type: application/json  
 
 {
-  "postId": "692b20af768f0b45c3dca36e",
-  "text": "very nice",
-  "sender": "Amit Mizrahi" 
+  "text": "WOWWW"
 }
 
 ###
-DELETE http://localhost:3000/comments/692b59fe51237288e7be6b50
+DELETE http://localhost:3000/comments/693b2cad048595d9923e7bf0

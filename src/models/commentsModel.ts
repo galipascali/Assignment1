@@ -1,10 +1,10 @@
-const mongoose = require("mongoose");
-const postSchema = require("./postsModel");
+import mongoose from "mongoose";
+import PostSchema from "./postsModel";
 
 const commentSchema = new mongoose.Schema({
   postId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: postSchema.modelName,
+    ref: PostSchema.modelName,
     required: true,
   },
   text: {
@@ -16,4 +16,5 @@ const commentSchema = new mongoose.Schema({
     required: true,
   },
 });
-module.exports = mongoose.model("comment", commentSchema);
+
+export default mongoose.model("comment", commentSchema);

@@ -1,19 +1,19 @@
-const postModel = require("../models/postsModel");
-const httpStatus = require("http-status");
-const createPost = async (req, res) => {
+import { Request, Response } from "express";
+import httpStatus from "http-status";
+import postModel from "../models/postsModel";
+
+const createPost = async (req: Request, res: Response) => {
   const postData = req.body;
   try {
     const newPost = await postModel.create(postData);
-    res.status(httpStatus.status.CREATED).json(newPost);
+    res.status(httpStatus.CREATED).json(newPost);
   } catch (err) {
     console.error(err);
-    res
-      .status(httpStatus.status.INTERNAL_SERVER_ERROR)
-      .send("Error creating post");
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Error creating post");
   }
 };
 
-const getAllPosts = async (req, res) => {
+const getAllPosts = async (req: Request, res: Response) => {
   try {
     const sender = req.query.sender;
 
@@ -22,41 +22,41 @@ const getAllPosts = async (req, res) => {
 
       if (!posts) {
         return res
-          .status(httpStatus.status.NOT_FOUND)
+          .status(httpStatus.NOT_FOUND)
           .send(`Posts by ${sender} were not found`);
       } else {
-        res.json(posts);
+        return res.json(posts);
       }
     } else {
       const posts = await postModel.find();
-      res.json(posts);
+      return res.json(posts);
     }
   } catch (err) {
     console.error(err);
-    res
-      .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+    return res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
       .send("Error retrieving posts");
   }
 };
 
-const getPostById = async (req, res) => {
+const getPostById = async (req: Request, res: Response) => {
   const id = req.params.id;
   try {
     const post = await postModel.findById(id);
     if (!post) {
       return res.status(404).send("Post was not found");
     } else {
-      res.json(post);
+      return res.json(post);
     }
   } catch (err) {
     console.error(err);
-    res
-      .status(httpStatus.status.INTERNAL_SERVER_ERROR)
+    return res
+      .status(httpStatus.INTERNAL_SERVER_ERROR)
       .send(`Error retrieving Post by ID: ${id}`);
   }
 };
 
-const updatePost = async (req, res) => {
+const updatePost = async (req: Request, res: Response) => {
   const id = req.params.id;
   const updatedData = req.body;
   try {
@@ -66,15 +66,13 @@ const updatePost = async (req, res) => {
     res.json(post);
   } catch (err) {
     console.error(err);
-    res
-      .status(httpStatus.status.INTERNAL_SERVER_ERROR)
-      .send("Error updating post");
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Error updating post");
   }
 };
 
-module.exports = {
+export default {
+  createPost,
   getAllPosts,
   getPostById,
-  createPost,
   updatePost,
 };
