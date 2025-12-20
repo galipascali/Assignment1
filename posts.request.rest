@@ -4,25 +4,25 @@ GET http://localhost:3000/posts
 
 ###
 
-GET http://localhost:3000/posts/692b20af768f0b45c3dca36f
+GET http://localhost:3000/posts/693b2c68048595d9923e7be7
 
 ###
 
-GET http://localhost:3000/posts/?sender=Gali
+GET http://localhost:3000/posts/?sender=Amit
 
 ###
 POST http://localhost:3000/posts
 Content-Type: application/json  
 
 {
-  "sender": "Gali",
-  "message": "Hello worls"
+  "sender": "Amit",
+  "message": "Hi Im Amit BRO"
 }
 
 ###
-PUT http://localhost:3000/posts/692b20af768f0b45c3dca36f
+PUT http://localhost:3000/posts/693b2c68048595d9923e7be7
 Content-Type: application/json  
 
 {
-  "message": "Hello no world"
+  "message": "hhhhhhhhhhhhhhhhhh"
 }
