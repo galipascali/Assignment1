@@ -4,7 +4,7 @@ GET http://localhost:3000/posts
 
 ###
 
-GET http://localhost:3000/posts/693b2c68048595d9923e7be7
+GET http://localhost:3000/posts/694c4c8db3136ace60e149a9
 
 ###
 
@@ -15,8 +15,8 @@ POST http://localhost:3000/posts
 Content-Type: application/json  
 
 {
-  "sender": "Amit",
-  "message": "Hi Im Amit BRO"
+  "sender": "Gali",
+  "message": "Hi This is My post"
 }
 
 ###
