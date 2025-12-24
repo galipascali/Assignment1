@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import httpStatus from "http-status";
 
 class BaseController {
   model: any;
@@ -18,7 +19,7 @@ class BaseController {
         res.json(data);
       }
     } catch (error) {
-      res.status(500).json({
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
         error:
           error instanceof Error
             ? error.message
@@ -33,13 +34,13 @@ class BaseController {
       const data = await this.model.findById(id);
       if (!data) {
         return res
-          .status(404)
+          .status(httpStatus.NOT_FOUND)
           .json({ error: `Data with id: ${id} was not found` });
       } else {
         return res.json(data);
       }
     } catch (error) {
-      return res.status(500).json({
+      return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
         error:
           error instanceof Error ? error.message : "An unknown error occurred",
       });
@@ -50,9 +51,9 @@ class BaseController {
     const obj = req.body;
     try {
       const response = await this.model.create(obj);
-      res.status(201).json(response);
+      res.status(httpStatus.CREATED).json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
         error:
           error instanceof Error ? error.message : "An unknown error occurred",
       });
@@ -65,7 +66,7 @@ class BaseController {
       const response = await this.model.findByIdAndDelete(id);
       res.send(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
         error:
           error instanceof Error ? error.message : "An unknown error occurred",
       });
@@ -81,7 +82,7 @@ class BaseController {
       });
       res.json(response);
     } catch (error) {
-      res.status(500).json({
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
         error:
           error instanceof Error ? error.message : "An unknown error occurred",
       });
