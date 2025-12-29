@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import httpStatus from "http-status";
+import { AuthRequest } from "../middleware/auth";
+import { assertExists } from "../utils";
 
 class BaseController {
   model: any;
@@ -47,8 +49,10 @@ class BaseController {
     }
   }
 
-  async post(req: Request, res: Response) {
+  async post(req: AuthRequest, res: Response) {
     const obj = req.body;
+    assertExists(req.user, "User information is missing in the request");
+    obj.sender = req.user._id;
     try {
       const response = await this.model.create(obj);
       res.status(httpStatus.CREATED).json(response);
@@ -60,29 +64,56 @@ class BaseController {
     }
   }
 
-  async delete(req: Request, res: Response) {
+  async delete(req: AuthRequest, res: Response) {
     const id = req.params.id;
+    assertExists(req.user, "User information is missing in the request");
     try {
+      const doc = await this.model.findById(id);
+
+      if (!doc) {
+        return res
+          .status(httpStatus.NOT_FOUND)
+          .json({ error: `Data with id: ${id} was not found` });
+      }
+      if (doc.sender.toString() !== req.user._id) {
+        return res
+          .status(httpStatus.FORBIDDEN)
+          .json({ error: "Not authorized to delete this resource" });
+      }
       const response = await this.model.findByIdAndDelete(id);
-      res.send(response);
+      return res.send(response);
     } catch (error) {
-      res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+      return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
         error:
           error instanceof Error ? error.message : "An unknown error occurred",
       });
     }
   }
 
-  async put(req: Request, res: Response) {
+  async put(req: AuthRequest, res: Response) {
     const id = req.params.id;
     const obj = req.body;
+    assertExists(req.user, "User information is missing in the request");
     try {
+      const existing = await this.model.findById(id);
+      if (!existing) {
+        return res
+          .status(httpStatus.NOT_FOUND)
+          .json({ error: `Data with id: ${id} was not found` });
+      }
+      if (existing.sender.toString() !== req.user._id) {
+        return res
+          .status(httpStatus.FORBIDDEN)
+          .json({ error: "Not authorized to edit this resource" });
+      }
+
+      obj.sender = existing.sender;
       const response = await this.model.findByIdAndUpdate(id, obj, {
         new: true,
       });
-      res.json(response);
+      return res.json(response);
     } catch (error) {
-      res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+      return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
         error:
           error instanceof Error ? error.message : "An unknown error occurred",
       });

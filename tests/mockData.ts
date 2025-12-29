@@ -3,6 +3,13 @@ export interface PostData {
   sender: string;
   _id?: string;
 }
+export interface UserData {
+  name: string;
+  email: string;
+  password: string;
+  token?: string;
+  _id?: string;
+}
 
 export interface CommentData {
   text: string;
