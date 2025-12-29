@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import UserModel from "./userModel";
 
 const postSchema = new mongoose.Schema({
   message: {
@@ -6,7 +7,8 @@ const postSchema = new mongoose.Schema({
     required: true,
   },
   sender: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: UserModel.modelName,
     required: true,
   },
 });

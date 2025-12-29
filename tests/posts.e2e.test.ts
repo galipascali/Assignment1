@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import request from "supertest";
 import initApp from "../src/index";
 import postsModel from "../src/models/postsModel";
+import userModel from "../src/models/userModel";
 import { postsData } from "./mockData";
 
 let app: Express;
@@ -13,6 +14,17 @@ beforeAll(async () => {
     process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/assignment1_test";
   app = await initApp();
   await postsModel.deleteMany({});
+
+  const user1 = await userModel.create({
+    name: "User One",
+    email: "one@example.com",
+  });
+  const user2 = await userModel.create({
+    name: "User Two",
+    email: "two@example.com",
+  });
+  postsData[0]!.sender = user1._id.toString();
+  postsData[1]!.sender = user2._id.toString();
 });
 
 afterAll(async () => {
@@ -55,13 +67,12 @@ describe("Posts E2E", () => {
       .query({ sender: postsData[0]!.sender });
     expect(res.status).toBe(httpStatus.OK);
     expect(res.body.length).toBe(1);
-    expect(res.body[0].sender).toBe(postsData[0]!.sender);
+    expect(res.body[0]).toMatchObject(postsData[0]!);
   });
 
   test("GET /posts with unexistent sender", async () => {
-    const res = await request(app)
-      .get("/posts")
-      .query({ sender: "Unexistent Sender" });
+    const fakeId = new mongoose.Types.ObjectId().toString();
+    const res = await request(app).get("/posts").query({ sender: fakeId });
     expect(res.status).toBe(httpStatus.OK);
     expect(res.body.length).toBe(0);
   });

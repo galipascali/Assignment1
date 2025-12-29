@@ -7,6 +7,7 @@ import commentsModel from "../src/models/commentsModel";
 import postsModel from "../src/models/postsModel";
 
 import { commentsData, postsData } from "./mockData";
+import userModel from "../src/models/userModel";
 
 let app: Express;
 
@@ -16,6 +17,13 @@ beforeAll(async () => {
   app = await initApp();
   await postsModel.deleteMany({});
   await commentsModel.deleteMany({});
+
+  const user = await userModel.create({
+    name: "Test User",
+    email: "test@example.com",
+  });
+  commentsData.forEach((c) => (c.sender = user._id.toString()));
+  postsData.forEach((p) => (p.sender = user._id.toString()));
 
   const posts = await postsModel.create(postsData);
 
