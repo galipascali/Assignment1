@@ -1,4 +1,5 @@
 import { Express } from "express";
+import httpStatus from "http-status";
 import mongoose from "mongoose";
 import request from "supertest";
 import initApp from "../src/index";
@@ -28,7 +29,7 @@ afterAll(async () => {
   try {
     await mongoose.connection.db?.dropDatabase();
   } catch (e) {
-    // ignore
+    console.error(`Error dropping database: ${e}`);
   } finally {
     await mongoose.connection.close();
   }
@@ -37,14 +38,14 @@ afterAll(async () => {
 describe("Comments E2E", () => {
   test("GET /comments returns empty array on fresh DB", async () => {
     const res = await request(app).get("/comments");
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(httpStatus.OK);
     expect(res.body).toEqual([]);
   });
 
   test("POST /comments creates comments", async () => {
     for (const c of commentsData) {
       const res = await request(app).post("/comments").send(c);
-      expect(res.status).toBe(201);
+      expect(res.status).toBe(httpStatus.CREATED);
       expect(res.body).toMatchObject({ text: c.text, sender: c.sender });
       c._id = res.body._id;
     }
@@ -52,19 +53,19 @@ describe("Comments E2E", () => {
 
   test("GET /comments returns posted items", async () => {
     const res = await request(app).get("/comments");
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(httpStatus.OK);
     expect(res.body.length).toBe(commentsData.length);
   });
 
   test("GET /comments with filter by postId", async () => {
     const post1Id = commentsData[0]!.postId;
     const res = await request(app).get("/comments").query({ postId: post1Id });
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(httpStatus.OK);
     expect(res.body.length).toBe(2);
 
     const post2Id = commentsData[2]!.postId;
     const res2 = await request(app).get("/comments").query({ postId: post2Id });
-    expect(res2.status).toBe(200);
+    expect(res2.status).toBe(httpStatus.OK);
     expect(res2.body.length).toBe(1);
   });
 
@@ -75,16 +76,16 @@ describe("Comments E2E", () => {
       text: "updated text",
     };
     const res = await request(app).put(`/comments/${id}`).send(updated);
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(httpStatus.OK);
     expect(res.body.text).toBe("updated text");
   });
 
   test("DELETE /comments/:id deletes a comment", async () => {
     const id = commentsData[2]!._id;
     const res = await request(app).delete(`/comments/${id}`);
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(httpStatus.OK);
 
     const getRes = await request(app).get(`/comments/${id}`);
-    expect(getRes.status).toBe(404);
+    expect(getRes.status).toBe(httpStatus.NOT_FOUND);
   });
 });
