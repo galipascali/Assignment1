@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { JwtTokenPayload } from "../types/jwtPayload";
 import { assertExists } from "../utils";
+import { config } from "dotenv";
+config();
 
 export type AuthRequest = Request & { user?: { _id: string } };
 const secret: string | undefined = process.env.JWT_SECRET;
