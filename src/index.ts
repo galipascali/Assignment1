@@ -2,6 +2,7 @@ import express, { Express } from "express";
 import mongoose from "mongoose";
 import commentsRoute from "./routes/commentsRoute";
 import postsRoute from "./routes/postsRoute";
+import authRoute from "./routes/authRoute";
 import { config } from "dotenv";
 
 config();
@@ -12,6 +13,7 @@ const initApp = () => {
   const appPromise = new Promise<Express>((resolve, reject) => {
     app.use(express.json());
 
+    app.use("/auth", authRoute);
     app.use("/posts", postsRoute);
     app.use("/comments", commentsRoute);
 
