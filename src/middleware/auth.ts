@@ -4,6 +4,8 @@ import { JwtTokenPayload } from "../types/jwtPayload";
 import { assertExists } from "../utils";
 
 export type AuthRequest = Request & { user?: { _id: string } };
+const secret: string | undefined = process.env.JWT_SECRET;
+assertExists(secret, "JWT_SECRET is not defined");
 
 const authMiddleware = (
   req: AuthRequest,
@@ -14,19 +16,16 @@ const authMiddleware = (
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Unauthorized" });
   }
-
   const token = authHeader.split(" ")[1];
   assertExists(token, "Token not found");
-  const secret: string = process.env.JWT_SECRET || "secret_for_tests";
-
   try {
     const decoded = jwt.verify(token, secret);
-    const paesedPayload = JwtTokenPayload.safeParse(decoded);
+    const parsedPayload = JwtTokenPayload.safeParse(decoded);
 
-    if (!paesedPayload.success) {
+    if (!parsedPayload.success) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    const userId = paesedPayload.data.userId;
+    const userId = parsedPayload.data.userId;
     req.user = { _id: userId };
 
     return next();

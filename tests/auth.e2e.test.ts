@@ -1,4 +1,3 @@
-import { jest } from "@jest/globals";
 import { Express } from "express";
 import httpStatus from "http-status";
 import mongoose from "mongoose";
@@ -58,8 +57,6 @@ describe("Auth E2E", () => {
       });
     expect(res.status).toBe(httpStatus.UNAUTHORIZED);
   });
-
-  jest.setTimeout(5000000);
 
   test("POST /auth/refresh rotates refresh token and invalidates used one", async () => {
     const login = await request(app).post("/auth/login").send(userCredentials);

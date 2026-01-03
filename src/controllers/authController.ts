@@ -4,10 +4,13 @@ import httpStatus from "http-status";
 import jwt from "jsonwebtoken";
 import User from "../models/userModel";
 import { JwtTokenPayload } from "../types/jwtPayload";
+import { assertExists } from "../utils";
 
-const JWT_SECRET = process.env.JWT_SECRET || "secret_for_tests";
+const JWT_SECRET = process.env.JWT_SECRET;
 const ACCESS_EXPIRES = process.env.JWT_EXPIRES_IN || "15m";
 const REFRESH_EXPIRES = process.env.REFRESH_EXPIRES_IN || "7d";
+
+assertExists(JWT_SECRET, "JWT_SECRET is not defined");
 
 const refresExpiresInMs = !isNaN(Number(REFRESH_EXPIRES))
   ? Number(REFRESH_EXPIRES)
@@ -17,14 +20,13 @@ const accessExpiresInMs = !isNaN(Number(ACCESS_EXPIRES))
   : 24 * 60 * 60 * 1000; // default 24 hours
 
 function signAccess(userId: string) {
-  return jwt.sign({ userId }, JWT_SECRET, {
+  return jwt.sign({ userId }, JWT_SECRET!, {
     expiresIn: accessExpiresInMs,
   });
 }
 
 function signRefresh(userId: string) {
-  // include a small nonce so tokens issued in the same second are different
-  return jwt.sign({ userId, nonce: Date.now() }, JWT_SECRET, {
+  return jwt.sign({ userId, nonce: Date.now() }, JWT_SECRET!, {
     expiresIn: refresExpiresInMs,
   });
 }
@@ -38,6 +40,7 @@ export const register = async (req: Request, res: Response) => {
         .json({ error: "Missing required fields" });
     }
     const existing = await User.findOne({ email });
+
     if (existing)
       return res
         .status(httpStatus.CONFLICT)
@@ -67,19 +70,22 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res
+      .status(httpStatus.BAD_REQUEST)
+      .json({ error: "Missing required fields" });
+  }
   try {
-    if (!email || !password) {
-      return res
-        .status(httpStatus.BAD_REQUEST)
-        .json({ error: "Missing required fields" });
-    }
     const user = await User.findOne({ email });
+
     if (!user)
       return res
         .status(httpStatus.UNAUTHORIZED)
         .json({ error: "Invalid credentials" });
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
     if (!isPasswordCorrect)
       return res
         .status(httpStatus.UNAUTHORIZED)
@@ -98,6 +104,7 @@ export const login = async (req: Request, res: Response) => {
 
 export const refreshToken = async (req: Request, res: Response) => {
   const { refreshToken } = req.body;
+
   if (!refreshToken)
     return res
       .status(httpStatus.UNAUTHORIZED)
@@ -135,6 +142,7 @@ export const refreshToken = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
   const { refreshToken } = req.body;
+
   if (!refreshToken)
     return res
       .status(httpStatus.BAD_REQUEST)
