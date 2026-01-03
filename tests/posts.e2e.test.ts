@@ -9,7 +9,9 @@ import { registerTestUser } from "./testUtils";
 
 let app: Express;
 let authHeader: string;
+let secondAuthHeader: string;
 let testUser: UserData;
+let secondTestUser: UserData;
 
 beforeAll(async () => {
   process.env.MONGODB_URI =
@@ -17,14 +19,20 @@ beforeAll(async () => {
   app = await initApp();
   await postsModel.deleteMany({});
   testUser = await registerTestUser(app);
+  secondTestUser = await registerTestUser(app, {
+    email: "other@email.com",
+    name: "otherName",
+    password: "otherPassword",
+  });
   authHeader = `Bearer ${testUser.token}`;
+  secondAuthHeader = `Bearer ${secondTestUser.token}`;
 });
 
 afterAll(async () => {
   try {
     await mongoose.connection.db?.dropDatabase();
   } catch (e) {
-    console.error(`Error dropping database: ${e}`);
+    console.error(`Error dropping database: ${JSON.stringify(e)}`);
   } finally {
     await mongoose.connection.close();
   }
@@ -40,17 +48,24 @@ describe("Posts E2E", () => {
   });
 
   test("POST /posts creates posts", async () => {
-    for (const p of postsData) {
-      const res = await request(app)
-        .post("/posts")
-        .set("Authorization", authHeader)
-        .send({ message: p.message });
-      expect(res.status).toBe(httpStatus.CREATED);
-      expect(res.body.message).toBe(p.message);
-      expect(res.body.sender).toBe(testUser!._id);
-      p._id = res.body._id;
-      p.sender = res.body.sender;
-    }
+    const firstRes = await request(app)
+      .post("/posts")
+      .set("Authorization", authHeader)
+      .send({ message: postsData[0]!.message });
+    expect(firstRes.status).toBe(httpStatus.CREATED);
+    expect(firstRes.body.message).toBe(postsData[0]!.message);
+    expect(firstRes.body.sender).toBe(testUser!._id);
+    postsData[0]!._id = firstRes.body._id;
+    postsData[0]!.sender = firstRes.body.sender;
+    const secondRes = await request(app)
+      .post("/posts")
+      .set("Authorization", secondAuthHeader)
+      .send({ message: postsData[1]!.message });
+    expect(secondRes.status).toBe(httpStatus.CREATED);
+    expect(secondRes.body.message).toBe(postsData[1]!.message);
+    expect(secondRes.body.sender).toBe(secondTestUser!._id);
+    postsData[1]!._id = secondRes.body._id;
+    postsData[1]!.sender = secondRes.body.sender;
   });
 
   test("GET /posts returns posted items", async () => {
@@ -63,29 +78,13 @@ describe("Posts E2E", () => {
     expect(res.body[1]).toMatchObject(postsData[1]!);
   });
 
-  test("PUT /posts/:id by non-owner returns 403", async () => {
-    const other = await request(app).post("/auth/register").send({
-      name: "Other User",
-      email: "other@example.com",
-      password: "password",
-    });
-    const otherAuth = `Bearer ${other.body.accessToken}`;
-
-    const id = postsData[0]!._id;
-    const res = await request(app)
-      .put(`/posts/${id}`)
-      .set("Authorization", otherAuth)
-      .send({ message: "Malicious update" });
-    expect(res.status).toBe(httpStatus.FORBIDDEN);
-  });
-
   test("GET /posts with filter", async () => {
     const res = await request(app)
       .get("/posts")
       .set("Authorization", authHeader)
       .query({ sender: postsData[0]!.sender });
     expect(res.status).toBe(httpStatus.OK);
-    expect(res.body.length).toBe(2);
+    expect(res.body.length).toBe(1);
     expect(res.body[0]).toMatchObject(postsData[0]!);
   });
 
@@ -117,5 +116,23 @@ describe("Posts E2E", () => {
       .send(updated);
     expect(res.status).toBe(httpStatus.OK);
     expect(res.body.message).toBe("Updated");
+  });
+
+  describe("Sad Path", () => {
+    test("PUT /posts/:id by non-owner returns 403", async () => {
+      const other = await registerTestUser(app, {
+        name: "Other User",
+        email: "other@example.com",
+        password: "password",
+      });
+      const otherAuth = `Bearer ${other.token}`;
+
+      const id = postsData[0]!._id;
+      const res = await request(app)
+        .put(`/posts/${id}`)
+        .set("Authorization", otherAuth)
+        .send({ message: "Malicious update" });
+      expect(res.status).toBe(httpStatus.FORBIDDEN);
+    });
   });
 });

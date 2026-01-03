@@ -3,22 +3,31 @@ import request from "supertest";
 import User from "../src/models/userModel";
 import { UserData } from "./mockData";
 
-export const userData: UserData = {
+export const defaultUserData: UserData = {
   email: "test@testMovies.com",
   password: "testpasswordMovies",
   name: "Test User",
 };
 
-export const registerTestUser = async (app: Express): Promise<UserData> => {
-  await User.deleteMany({ email: userData.email });
-
+export const registerTestUser = async (
+  app: Express,
+  userData?: UserData
+): Promise<UserData> => {
+  await User.deleteMany({ email: userData?.email ?? defaultUserData.email });
+  const email = userData?.email ?? defaultUserData.email;
+  const password = userData?.password ?? defaultUserData.password;
+  const name = userData?.name ?? defaultUserData.name;
   const res = await request(app).post("/auth/register").send({
-    email: userData.email,
-    password: userData.password,
-    name: userData.name,
+    email,
+    password,
+    name,
   });
-  userData._id = res.body.user.id;
-  userData.token = res.body.accessToken;
 
-  return userData;
+  return {
+    email,
+    name,
+    password,
+    _id: res.body.user.id,
+    token: res.body.accessToken,
+  };
 };

@@ -23,7 +23,8 @@ function signAccess(userId: string) {
 }
 
 function signRefresh(userId: string) {
-  return jwt.sign({ userId }, JWT_SECRET, {
+  // include a small nonce so tokens issued in the same second are different
+  return jwt.sign({ userId, nonce: Date.now() }, JWT_SECRET, {
     expiresIn: refresExpiresInMs,
   });
 }
@@ -31,6 +32,11 @@ function signRefresh(userId: string) {
 export const register = async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
   try {
+    if (!name || !email || !password) {
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json({ error: "Missing required fields" });
+    }
     const existing = await User.findOne({ email });
     if (existing)
       return res
@@ -62,14 +68,19 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   try {
+    if (!email || !password) {
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json({ error: "Missing required fields" });
+    }
     const user = await User.findOne({ email });
     if (!user)
       return res
         .status(httpStatus.UNAUTHORIZED)
         .json({ error: "Invalid credentials" });
 
-    const ok = await bcrypt.compare(password, user.password);
-    if (!ok)
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect)
       return res
         .status(httpStatus.UNAUTHORIZED)
         .json({ error: "Invalid credentials" });
@@ -89,18 +100,14 @@ export const refreshToken = async (req: Request, res: Response) => {
   const { refreshToken } = req.body;
   if (!refreshToken)
     return res
-      .status(httpStatus.BAD_REQUEST)
+      .status(httpStatus.UNAUTHORIZED)
       .json({ error: "refreshToken required" });
   try {
     const payload = jwt.verify(refreshToken, JWT_SECRET);
     const parsedPayload = JwtTokenPayload.parse(payload);
     const userId = parsedPayload.userId;
-
-    if (!userId)
-      return res
-        .status(httpStatus.UNAUTHORIZED)
-        .json({ error: "Invalid token" });
     const user = await User.findById(userId);
+
     if (!user)
       return res
         .status(httpStatus.UNAUTHORIZED)
@@ -136,11 +143,8 @@ export const logout = async (req: Request, res: Response) => {
     const payload = jwt.decode(refreshToken);
     const parsedPayload = JwtTokenPayload.parse(payload);
     const userId = parsedPayload.userId;
-    if (!userId)
-      return res
-        .status(httpStatus.BAD_REQUEST)
-        .json({ error: "Invalid token" });
     const user = await User.findById(userId);
+
     if (!user) return res.status(httpStatus.OK).json({});
     user.refreshToken = user.refreshToken.filter((t) => t !== refreshToken);
     await user.save();

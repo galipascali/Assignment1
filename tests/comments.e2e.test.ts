@@ -21,22 +21,23 @@ beforeAll(async () => {
 
   const testUser = await registerTestUser(app);
   authHeader = `Bearer ${testUser.token}`;
-  commentsData.forEach((c) => (c.sender = testUser._id!));
-  postsData.forEach((p) => (p.sender = testUser._id!));
-
+  postsData.forEach((post) => (post.sender = testUser._id));
   const posts = await postsModel.create(postsData);
 
   expect(posts.length).toBe(2);
   commentsData[0]!.postId = String(posts[0]!._id);
   commentsData[1]!.postId = String(posts[0]!._id);
   commentsData[2]!.postId = String(posts[1]!._id);
+  commentsData[0]!.sender = testUser._id;
+  commentsData[1]!.sender = testUser._id;
+  commentsData[2]!.sender = testUser._id;
 });
 
 afterAll(async () => {
   try {
     await mongoose.connection.db?.dropDatabase();
   } catch (e) {
-    console.error(`Error dropping database: ${e}`);
+    console.error(`Error dropping database: ${JSON.stringify(e)}`);
   } finally {
     await mongoose.connection.close();
   }
@@ -57,7 +58,6 @@ describe("Comments E2E", () => {
       const res = await request(app)
         .post("/comments")
         .set("Authorization", authHeader)
-
         .send(c);
       expect(res.status).toBe(httpStatus.CREATED);
       expect(res.body).toMatchObject({ text: c.text, sender: c.sender });
@@ -118,33 +118,36 @@ describe("Comments E2E", () => {
     expect(getRes.status).toBe(httpStatus.NOT_FOUND);
   });
 
-  test("PUT /comments/:id by non-owner returns 403", async () => {
-    const other = await request(app).post("/auth/register").send({
-      name: "Other User",
-      email: "other2@example.com",
-      password: "password",
+  describe("Sad Path", () => {
+    test("PUT /comments/:id by non-owner returns 403", async () => {
+      const other = await registerTestUser(app, {
+        name: "Other User",
+        email: "other2@example.com",
+        password: "password",
+      });
+      const otherAuth = `Bearer ${other.token}`;
+
+      const id = commentsData[0]!._id;
+      const res = await request(app)
+        .put(`/comments/${id}`)
+        .set("Authorization", otherAuth)
+        .send({ text: "Not allowed" });
+      expect(res.status).toBe(httpStatus.FORBIDDEN);
     });
-    const otherAuth = `Bearer ${other.body.accessToken}`;
 
-    const id = commentsData[0]!._id;
-    const res = await request(app)
-      .put(`/comments/${id}`)
-      .set("Authorization", otherAuth)
-      .send({ text: "Not allowed" });
-    expect(res.status).toBe(httpStatus.FORBIDDEN);
-  });
+    test("DELETE /comments/:id by non-owner returns 403", async () => {
+      const otherLogin = await registerTestUser(app, {
+        email: "other2@example.com",
+        password: "password",
+        name: "other",
+      });
+      const otherAuth = `Bearer ${otherLogin.token}`;
 
-  test("DELETE /comments/:id by non-owner returns 403", async () => {
-    const otherLogin = await request(app).post("/auth/login").send({
-      email: "other2@example.com",
-      password: "password",
+      const id = commentsData[1]!._id;
+      const res = await request(app)
+        .delete(`/comments/${id}`)
+        .set("Authorization", otherAuth);
+      expect(res.status).toBe(httpStatus.FORBIDDEN);
     });
-    const otherAuth = `Bearer ${otherLogin.body.accessToken}`;
-
-    const id = commentsData[1]!._id;
-    const res = await request(app)
-      .delete(`/comments/${id}`)
-      .set("Authorization", otherAuth);
-    expect(res.status).toBe(httpStatus.FORBIDDEN);
   });
 });
