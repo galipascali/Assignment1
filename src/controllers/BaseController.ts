@@ -55,6 +55,7 @@ class BaseController {
     obj.sender = req.user._id;
     try {
       const response = await this.model.create(obj);
+
       return res.status(httpStatus.CREATED).json(response);
     } catch (error) {
       if (error instanceof Error && error.name === "ValidationError") {
