@@ -114,6 +114,8 @@ router.get(
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Comment'
+ *       403:
+ *         description: Not authorized to edit this resource
  *       404:
  *         description: Comment not found
  *       500:
@@ -143,6 +145,8 @@ router.put(
  *     responses:
  *       200:
  *         description: Comment deleted successfully
+ *       403:
+ *         description: Not authorized to delete this resource
  *       404:
  *         description: Comment not found
  *       500:

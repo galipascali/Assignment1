@@ -128,6 +128,8 @@ router.get(
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Post'
+ *       403:
+ *         description: Not authorized to edit this resource
  *       404:
  *         description: Post not found
  *       500:

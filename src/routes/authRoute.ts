@@ -37,6 +37,8 @@ const router = express.Router();
  *               $ref: '#/components/schemas/RegisterResponse'
  *       400:
  *         description: Validation error
+ *       409:
+ *         description: Email already in use
  *       500:
  *         description: Internal server error
  */
