@@ -5,6 +5,9 @@ import jwt from "jsonwebtoken";
 import User from "../models/userModel";
 import { JwtTokenPayload } from "../types/jwtPayload";
 import { assertExists } from "../utils";
+import { config } from "dotenv";
+
+config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const ACCESS_EXPIRES = process.env.JWT_EXPIRES_IN || "15m";
@@ -59,7 +62,7 @@ export const register = async (req: Request, res: Response) => {
 
     const access = signAccess(user._id.toString());
     return res.status(httpStatus.CREATED).json({
-      user: { id: user._id, email: user.email },
+      user: { id: user._id, email: user.email, name: user.name },
       accessToken: access,
       refreshToken: refresh,
     });

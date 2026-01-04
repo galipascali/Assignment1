@@ -1,9 +1,10 @@
+import { config } from "dotenv";
 import express, { Express } from "express";
 import mongoose from "mongoose";
+import authRoute from "./routes/authRoute";
 import commentsRoute from "./routes/commentsRoute";
 import postsRoute from "./routes/postsRoute";
-import authRoute from "./routes/authRoute";
-import { config } from "dotenv";
+import { specs, swaggerUi } from "./swagger";
 
 config();
 
@@ -16,6 +17,18 @@ const initApp = () => {
     app.use("/auth", authRoute);
     app.use("/posts", postsRoute);
     app.use("/comments", commentsRoute);
+
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, {
+      explorer: true,
+      customCss: ".swagger-ui .topbar { display: none }",
+      customSiteTitle: "Movie & Comments API Documentation"
+    }));
+
+    app.get("/api-docs.json", (_req, res) => {
+      res.setHeader("Content-Type", "application/json");
+      res.send(specs);
+    });
+
 
     const dbUri = process.env.MONGODB_URI;
 

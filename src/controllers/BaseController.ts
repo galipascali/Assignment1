@@ -55,9 +55,15 @@ class BaseController {
     obj.sender = req.user._id;
     try {
       const response = await this.model.create(obj);
-      res.status(httpStatus.CREATED).json(response);
+
+      return res.status(httpStatus.CREATED).json(response);
     } catch (error) {
-      res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+      if (error instanceof Error && error.name === "ValidationError") {
+        return res.status(httpStatus.BAD_REQUEST).json({
+          error: error.message,
+        });
+      }
+      return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
         error:
           error instanceof Error ? error.message : "An unknown error occurred",
       });
@@ -110,9 +116,15 @@ class BaseController {
       obj.sender = existing.sender;
       const response = await this.model.findByIdAndUpdate(id, obj, {
         new: true,
+        runValidators: true,
       });
       return res.json(response);
     } catch (error) {
+      if (error instanceof Error && error.name === "ValidationError") {
+        return res.status(httpStatus.BAD_REQUEST).json({
+          error: error.message,
+        });
+      }
       return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
         error:
           error instanceof Error ? error.message : "An unknown error occurred",
