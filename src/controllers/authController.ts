@@ -1,10 +1,10 @@
-import bcrypt from "bcrypt";
+
 import { Request, Response } from "express";
 import httpStatus from "http-status";
 import jwt from "jsonwebtoken";
 import User from "../models/userModel";
 import { JwtTokenPayload } from "../types/jwtPayload";
-import { assertExists } from "../utils";
+import { assertExists, comparePassword, encryptPassword } from "../utils";
 import { config } from "dotenv";
 
 config();
@@ -49,8 +49,7 @@ export const register = async (req: Request, res: Response) => {
         .status(httpStatus.CONFLICT)
         .json({ error: "Email already in use" });
 
-    const salt = await bcrypt.genSalt(10);
-    const encryptedPassword = await bcrypt.hash(password, salt);
+    const encryptedPassword = await encryptPassword(password);
     const user = await User.create({
       name,
       email,
@@ -87,7 +86,7 @@ export const login = async (req: Request, res: Response) => {
         .status(httpStatus.UNAUTHORIZED)
         .json({ error: "Invalid credentials" });
 
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    const isPasswordCorrect = await comparePassword(password, user.password);
 
     if (!isPasswordCorrect)
       return res

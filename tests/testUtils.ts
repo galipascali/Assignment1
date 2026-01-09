@@ -4,8 +4,8 @@ import User from "../src/models/userModel";
 import { UserData } from "./mockData";
 
 export const defaultUserData: UserData = {
-  email: "test@testMovies.com",
-  password: "testpasswordMovies",
+  email: "test@user.com",
+  password: "testpassword",
   name: "Test User",
 };
 

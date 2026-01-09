@@ -1,6 +1,7 @@
 import { config } from "dotenv";
 import express, { Express } from "express";
 import mongoose from "mongoose";
+import usersRoute from "./routes/usersRoute";
 import authRoute from "./routes/authRoute";
 import commentsRoute from "./routes/commentsRoute";
 import postsRoute from "./routes/postsRoute";
@@ -15,6 +16,7 @@ const initApp = () => {
     app.use(express.json());
 
     app.use("/auth", authRoute);
+    app.use("/users", usersRoute);
     app.use("/posts", postsRoute);
     app.use("/comments", commentsRoute);
 
